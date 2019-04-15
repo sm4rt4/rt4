@@ -22,18 +22,22 @@ mongoose.connection.on('error', (err) => {
 
 const server = dgram.createSocket('udp4');
 
-const phoneServer = {
-	address: '',
-	port: 8080
-}
+// let phoneServer;
 
 const loginRequests = {};
 
 server.on('message', function (message, rinfo) {
+	console.log(`rinfo - ${JSON.stringify(rinfo, null, 4)}`);
+	console.log(`message - ${JSON.stringify(message, null, 4)}`);
+
 	const msgData = JSON.parse(message);
 
 	const msgType = msgData.type;
 	switch (msgType) {
+		// case 'phoneHi':
+		// 	phoneServer = { address: rinfo.address, port: rinfo.port };
+		// 	break;
+
 		case 'loginRequest':
 			const hash = functions.getHash(msgData.pass);
 
@@ -137,4 +141,4 @@ function sendMessage(msg, rinfo) {
 	server.send(msg, rinfo.port, rinfo.address);
 }
 
-server.bind(3000);
+server.bind(8080);
