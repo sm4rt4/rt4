@@ -25,12 +25,20 @@ const server = dgram.createSocket('udp4');
 // let phoneServer;
 
 const loginRequests = {};
+const dealt = [];
 
 server.on('message', function (message, rinfo) {
 	const msgData = JSON.parse(message.toString());
 	
 	console.log(`rinfo - ${JSON.stringify(rinfo, null, 4)}`);
 	console.log(`message - ${JSON.stringify(msgData, null, 4)}`);
+
+	if (msgData.hasOwnProperty('cTime')) {
+		const cTime = msgData.cTime;
+
+		if (dealt.indexOf(cTime) >= 0) return;
+		else dealt.push(cTime);
+	}
 
 	const msgType = msgData.type;
 	switch (msgType) {
@@ -39,7 +47,7 @@ server.on('message', function (message, rinfo) {
 		// 	break;
 
 		case 'loginRequest':
-			const hash = functions.getHash(msgData.pass);
+			const hash = functions.getHash(msgData.cTime);
 
 			loginRequests[msgData.phone] = {
 				hash,
@@ -69,12 +77,12 @@ server.on('message', function (message, rinfo) {
 						}
 					], (err, userDoc) => {
 						if (err) {
-							sendMessage(JSON.stringify({ type: 'loginFailure' }), loginRequests[phone].rinfo);
+							sendMessage(JSON.stringify({ type: 'loginFailure', cTime: getTime() }), loginRequests[phone].rinfo);
 							return;
 						}
 
 						const token = functions.generateToken(userDoc);
-						sendMessage(JSON.stringify({ type: 'loginSuccess', doc: userDoc, token }), loginRequests[phone].rinfo);
+						sendMessage(JSON.stringify({ type: 'loginSuccess', cTime: getTime(), doc: userDoc, token }), loginRequests[phone].rinfo);
 					});
 				}
 			}
@@ -82,13 +90,13 @@ server.on('message', function (message, rinfo) {
 
 		case 'newOrder':
 			if (msgData.token == undefined) {
-				sendMessage(JSON.stringify({ type: 'orderFailure', msg: 'User not logged in' }), rinfo);
+				sendMessage(JSON.stringify({ type: 'orderFailure', cTime: getTime(), msg: 'User not logged in' }), rinfo);
 				return;
 			}
 			const token = msgData.token;
 
 			if (msgData.sa == undefined || msgData.ra == undefined || msgData.rPhone == undefined) {
-				sendMessage(JSON.stringify({ type: 'orderFailure', msg: 'Please enter Pickup and Delivery locations' }), rinfo);
+				sendMessage(JSON.stringify({ type: 'orderFailure', cTime: getTime(), msg: 'Please enter Pickup and Delivery locations' }), rinfo);
 				return;
 			}
 
@@ -97,7 +105,7 @@ server.on('message', function (message, rinfo) {
 			const rPhone = msgData.rPhone;
 
 			if (sAddress == '' || rAddress == '' || rPhone == '') {
-				sendMessage(JSON.stringify({ type: 'orderFailure', msg: 'Please enter Pickup and Delivery locations' }), rinfo);
+				sendMessage(JSON.stringify({ type: 'orderFailure', cTime: getTime(), msg: 'Please enter Pickup and Delivery locations' }), rinfo);
 				return;
 			}
 
@@ -126,11 +134,11 @@ server.on('message', function (message, rinfo) {
 				},
 			], (err, orderDoc) => {
 				if (err) {
-					sendMessage(JSON.stringify({ type: 'orderFailure', msg: err }), rinfo);
+					sendMessage(JSON.stringify({ type: 'orderFailure', cTime: getTime(), msg: err }), rinfo);
 					return;
 				}
 
-				sendMessage(JSON.stringify({ type: 'orderSuccess', doc: orderDoc }), rinfo);
+				sendMessage(JSON.stringify({ type: 'orderSuccess', cTime: getTime(), doc: orderDoc }), rinfo);
 			});
 			
 			break;
@@ -138,7 +146,16 @@ server.on('message', function (message, rinfo) {
 });
 
 function sendMessage(msg, rinfo) {
-	server.send(msg, rinfo.port, rinfo.address);
+	// server.send(msg, rinfo.port, rinfo.address);
+
+	setInterval(() => {
+		server.send(msg, rinfo.port, rinfo.address);
+	}, 500);
+}
+
+function getTime() {
+	const d = new Date();
+	return d.getTime().toString();
 }
 
 server.bind(8080);
