@@ -27,10 +27,10 @@ const server = dgram.createSocket('udp4');
 const loginRequests = {};
 
 server.on('message', function (message, rinfo) {
+	const msgData = JSON.parse(message.toString());
+	
 	console.log(`rinfo - ${JSON.stringify(rinfo, null, 4)}`);
-	console.log(`message - ${JSON.stringify(message, null, 4)}`);
-
-	const msgData = JSON.parse(message);
+	console.log(`message - ${JSON.stringify(msgData, null, 4)}`);
 
 	const msgType = msgData.type;
 	switch (msgType) {
