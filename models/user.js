@@ -29,7 +29,7 @@ module.exports.add = (userData, callback) => {
 module.exports.exists = (phone, callback) => {
 	User.findOne({ phone }, (err, doc) => {
 		if (err) callback('Error');
-		else callback(null, doc == null);
+		else callback(null, doc != null);
 	});
 }
 

@@ -9,7 +9,8 @@ const functions = require('./includes/functions');
 const jwt = require('jsonwebtoken');
 
 mongoose.connect(values.dbUrl, {
-	useNewUrlParser: true
+	useNewUrlParser: true,
+	useFindAndModify: false
 });
 
 mongoose.connection.on('connected', () => {
