@@ -31,15 +31,15 @@ const dealt = [];
 server.on('message', function (message, rinfo) {
 	const msgData = JSON.parse(message.toString());
 	
-	console.log(`rinfo - ${JSON.stringify(rinfo, null, 4)}`);
-	console.log(`message - ${JSON.stringify(msgData, null, 4)}`);
-
 	if (msgData.hasOwnProperty('cTime')) {
 		const cTime = msgData.cTime;
 
 		if (dealt.indexOf(cTime) >= 0) return;
 		else dealt.push(cTime);
 	}
+
+	console.log(`rinfo - ${JSON.stringify(rinfo, null, 4)}`);
+	console.log(`message - ${JSON.stringify(msgData, null, 4)}`);
 
 	const msgType = msgData.type;
 	switch (msgType) {
