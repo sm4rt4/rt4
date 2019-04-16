@@ -9,6 +9,6 @@ module.exports = {
 		return bcrypt.hashSync(str, salt);
 	},
 	generateToken: (data) => {
-		return 'JWT ' + jwt.sign({ data }, values.secret, { expiresIn: '45d' });
+		return jwt.sign({ data }, values.secret, { expiresIn: '45d' });
 	}
 };
