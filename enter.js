@@ -66,8 +66,14 @@ server.on('message', function (message, rinfo) {
 			}
 
 			jwt.verify(msgData.token, values.secret, (err, decoded) => {
-				if (err) sendMessage(JSON.stringify({ type: 'tvFailure', cTime: getTime()}), rinfo);
-				else sendMessage(JSON.stringify({ type: 'tvSuccess', cTime: getTime(), doc: decoded }), rinfo);
+				if (err) {
+					console.log(`Error - ${err}`);
+					sendMessage(JSON.stringify({ type: 'tvFailure', cTime: getTime()}), rinfo);
+				}
+				else {
+					console.log(JSON.stringify(decoded, null, 4));
+					sendMessage(JSON.stringify({ type: 'tvSuccess', cTime: getTime(), doc: decoded }), rinfo);
+				}
 			});
 			break;
 
