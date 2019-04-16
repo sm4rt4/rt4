@@ -56,12 +56,24 @@ server.on('message', function (message, rinfo) {
 				rinfo
 			};
 
-			console.log(JSON.stringify(loginRequests, null, 4));
+			// console.log(JSON.stringify(loginRequests, null, 4));
+			break;
+
+		case 'tokenVerify':
+			if (msgData.token == undefined) {
+				sendMessage(JSON.stringify({ type: 'tvFailure', cTime: getTime() }), rinfo);
+				return;
+			}
+
+			jwt.verify(msgData.token, values.secret, (err, decoded) => {
+				if (err) sendMessage(JSON.stringify({ type: 'tvFailure', cTime: getTime()}), rinfo);
+				else sendMessage(JSON.stringify({ type: 'tvSuccess', cTime: getTime(), doc: decoded }), rinfo);
+			});
 			break;
 
 		case 'newCall':
 			if (loginRequests[msgData.phone] != null) {
-				console.log(JSON.stringify(loginRequests[msgData.phone], null, 4));
+				// console.log(JSON.stringify(loginRequests[msgData.phone], null, 4));
 
 				const timeRn = moment();
 				const duration = moment.duration(timeRn.diff(loginRequests[msgData.phone].rTime));
