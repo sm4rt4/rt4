@@ -54,10 +54,14 @@ server.on('message', function (message, rinfo) {
 				rTime: new Date(),
 				rinfo
 			};
+
+			console.log(JSON.stringify(loginRequests, null, 4));
 			break;
 
 		case 'newCall':
 			if (loginRequests[msgData.phone] != null) {
+				console.log(JSON.stringify(loginRequests[msgData.phone], null, 4));
+
 				const timeRn = moment();
 				const duration = moment.duration(timeRn.diff(loginRequests[msgData.phone].rTime));
 				const mins = duration.asMinutes();
@@ -148,8 +152,12 @@ server.on('message', function (message, rinfo) {
 function sendMessage(msg, rinfo) {
 	// server.send(msg, rinfo.port, rinfo.address);
 
-	setInterval(() => {
+	let i = 0;
+	const il = setInterval(() => {
 		server.send(msg, rinfo.port, rinfo.address);
+		i++;
+
+		if (i == 5) clearInterval(il);
 	}, 500);
 }
 
