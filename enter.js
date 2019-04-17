@@ -135,7 +135,9 @@ server.on('message', function (message, rinfo) {
 						if (err || userDoc == null) {
 							console.log(`Error - ${err}`);
 						} else {
-							User.addAddress(userDoc.phone, msgData.na);
+							User.addAddress(userDoc.phone, msgData.na, (err) => {
+								if (err) console.log(`Error X - ${err}`);
+							});
 						}
 					});
 				}
