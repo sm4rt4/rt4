@@ -72,7 +72,7 @@ server.on('message', function (message, rinfo) {
 				}
 				else {
 					console.log(JSON.stringify(decoded, null, 4));
-					User.getAuthUser(decoded.phone, decoded.hash, (err, userDoc) => {
+					User.getAuthUser(decoded.data.phone, decoded.data.hash, (err, userDoc) => {
 						if (err || userDoc == null) {
 							console.log(`Error - ${err}`);
 							sendMessage(JSON.stringify({ type: 'tvFailure', cTime: getTime()}), rinfo);
