@@ -121,12 +121,25 @@ server.on('message', function (message, rinfo) {
 			break;
 
 		case 'newAddress':
-			if (msgData.na == undefined) {
+			if (msgData.token == undefined || msgData.na == undefined) {
 				return;
 			}
 
-			User.addAddress(msgData.na);
-
+			jwt.verify(msgData.token, values.secret, (err, decoded) => {
+				if (err) {
+					return;
+				}
+				else {
+					console.log(JSON.stringify(decoded, null, 4));
+					User.getAuthUser(decoded.data.phone, decoded.data.hash, (err, userDoc) => {
+						if (err || userDoc == null) {
+							console.log(`Error - ${err}`);
+						} else {
+							User.addAddress(userDoc.phone, msgData.na);
+						}
+					});
+				}
+			});
 			break;
 
 		case 'newOrder':
