@@ -71,8 +71,16 @@ server.on('message', function (message, rinfo) {
 					sendMessage(JSON.stringify({ type: 'tvFailure', cTime: getTime()}), rinfo);
 				}
 				else {
-					console.log(JSON.stringify(decoded, null, 4));
-					sendMessage(JSON.stringify({ type: 'tvSuccess', cTime: getTime(), doc: decoded }), rinfo);
+					User.getAuthUser(decoded.phone, decoded.hash, (err, userDoc) => {
+						if (err) {
+							console.log(`Error - ${err}`);
+							sendMessage(JSON.stringify({ type: 'tvFailure', cTime: getTime()}), rinfo);
+						} else {
+							sendMessage(JSON.stringify({ type: 'tvSuccess', cTime: getTime(), doc: userDoc }), rinfo);
+						}
+					});
+					// console.log(JSON.stringify(decoded, null, 4));
+					// sendMessage(JSON.stringify({ type: 'tvSuccess', cTime: getTime(), doc: decoded }), rinfo);
 				}
 			});
 			break;

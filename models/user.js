@@ -37,6 +37,10 @@ module.exports.get = (phone, callback) => {
 	User.findOne({ phone }, callback);
 }
 
+module.exports.getAuthUser = (phone, hash, callback) => {
+	User.findOne({ phone, hash }, callback);
+}
+
 module.exports.updateHash = (phone, hash, callback) => {
 	User.findOneAndUpdate({ phone }, { $set: { hash } }, { new: true }, callback);
 }
