@@ -45,6 +45,10 @@ module.exports.updateHash = (phone, hash, callback) => {
 	User.findOneAndUpdate({ phone }, { $set: { hash } }, { new: true }, callback);
 }
 
+module.exports.addAddress = (phone, na, callback) => {
+	User.updateOne({ phone }, { $push: { addresses: na } }, callback);
+}
+
 module.exports.addOrder = (phone, orderId, callback) => {
 	User.updateOne({ phone }, { $push: { orders: orderId } }, callback);
 }

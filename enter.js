@@ -120,6 +120,15 @@ server.on('message', function (message, rinfo) {
 			}
 			break;
 
+		case 'newAddress':
+			if (msgData.na == undefined) {
+				return;
+			}
+
+			User.addAddress(msgData.na);
+
+			break;
+
 		case 'newOrder':
 			if (msgData.token == undefined) {
 				sendMessage(JSON.stringify({ type: 'orderFailure', cTime: getTime(), msg: 'User not logged in' }), rinfo);
