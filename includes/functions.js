@@ -16,7 +16,7 @@ module.exports = {
 		jwt.verify(token, values.secret, (err, decoded) => {
 			if (err) callback('Unauthorized');
 			else {
-				User.getAuthUser(decoded.phone, decoded.hash, (err, userDoc) => {
+				User.getAuthUser(decoded.data.phone, decoded.data.hash, (err, userDoc) => {
 					if (err || userDoc == null) callback('Unauthorized');
 					else callback(null, userDoc);
 				});
