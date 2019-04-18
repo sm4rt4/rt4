@@ -153,6 +153,40 @@ server.on('message', function (message, rinfo) {
 				else sendMessage(JSON.stringify({ type: 'orderSuccess', cTime: getTime(), doc: orderDoc }), rinfo);
 			});
 			break;
+
+		case 'getOrder':
+			if (msgData.token == undefined || msgData.oId == undefined) {
+				return;
+			}
+
+			async.waterfall([
+				(callback) => functions.verifyToken(msgData.token, callback),
+				(userDoc, callback) => Order.get(msgData.oId, callback)
+			], (err, orderDoc) => {
+				if (!err && orderDoc != null) sendMessage(JSON.stringify({ type: 'ofSuccess', cTime: getTime(), doc: orderDoc }), rinfo);
+			});
+			break;
+
+		case 'delAddresses':
+			if (msgData.token == undefined || msgData.names == undefined) {
+				return;
+			}
+
+			functions.verifyToken(msgData.token, (err, userDoc) => {
+				if (err) {
+					return;
+				} else {
+					let newAddresses = userDoc.addresses;
+					for (let i = 0; i < userDoc.addresses.length; i++) {
+						for (let j = 0; j < msgData.names.length; j++) {
+							if (userDoc.addresses[i].name == msgData.names[i].name) newAddresses.splice(i, 1);
+						}
+					}
+
+					User.updateAddresses(userDoc.phone, newAddresses);
+				}
+			});
+			break;
 	}
 });
 

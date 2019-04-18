@@ -38,6 +38,10 @@ module.exports.addAddress = (phone, na, callback) => {
 	User.updateOne({ phone }, { $push: { addresses: na } }, callback);
 }
 
+module.exports.updateAddresses = (phone, addresses, callback) => {
+	User.updateOne({ phone }, { $set: { addresses } }, callback);
+}
+
 module.exports.addOrder = (phone, orderId, callback) => {
 	User.updateOne({ phone }, { $push: { orders: orderId } }, callback);
 }
