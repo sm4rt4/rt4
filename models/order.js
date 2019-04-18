@@ -1,31 +1,19 @@
 const mongoose = require('mongoose');
 
 const OrderSchema = mongoose.Schema({
-	sender: {
-		phone: {
-			type: String,
-			required: true
-		},
-		address: {
-			type: String,
-			required: true
-		},
-		lat: Number,
-		lng: Number
+	phone: {
+		type: String,
+		required: true
 	},
-	receiver: {
-		phone: {
-			type: String,
-			required: true
-		},
-		address: {
-			type: String,
-			required: true
-		},
-		lat: Number,
-		lng: Number
+	pickup: {
+		type: Object,
+		required: true
 	},
-	fee: {
+	delivery: {
+		type: Object,
+		required: true
+	},
+	charge: {
 		type: Number,
 		default: 20
 	},

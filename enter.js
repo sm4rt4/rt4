@@ -65,23 +65,11 @@ server.on('message', function (message, rinfo) {
 				return;
 			}
 
-			jwt.verify(msgData.token, values.secret, (err, decoded) => {
+			functions.verifyToken(msgData.token, (err, userDoc) => {
 				if (err) {
-					console.log(`Error - ${err}`);
 					sendMessage(JSON.stringify({ type: 'tvFailure', cTime: getTime()}), rinfo);
-				}
-				else {
-					console.log(JSON.stringify(decoded, null, 4));
-					User.getAuthUser(decoded.data.phone, decoded.data.hash, (err, userDoc) => {
-						if (err || userDoc == null) {
-							console.log(`Error - ${err}`);
-							sendMessage(JSON.stringify({ type: 'tvFailure', cTime: getTime()}), rinfo);
-						} else {
-							sendMessage(JSON.stringify({ type: 'tvSuccess', cTime: getTime(), doc: userDoc }), rinfo);
-						}
-					});
-					// console.log(JSON.stringify(decoded, null, 4));
-					// sendMessage(JSON.stringify({ type: 'tvSuccess', cTime: getTime(), doc: decoded }), rinfo);
+				} else {
+					sendMessage(JSON.stringify({ type: 'tvSuccess', cTime: getTime(), doc: userDoc }), rinfo);
 				}
 			});
 			break;
@@ -125,78 +113,38 @@ server.on('message', function (message, rinfo) {
 				return;
 			}
 
-			jwt.verify(msgData.token, values.secret, (err, decoded) => {
+			functions.verifyToken(msgData.token, (err, userDoc) => {
 				if (err) {
 					return;
-				}
-				else {
-					console.log(JSON.stringify(decoded, null, 4));
-					User.getAuthUser(decoded.data.phone, decoded.data.hash, (err, userDoc) => {
-						if (err || userDoc == null) {
-							console.log(`Error - ${err}`);
-						} else {
-							User.addAddress(userDoc.phone, msgData.na, (err) => {
-								if (err) console.log(`Error X - ${err}`);
-							});
-						}
+				} else {
+					User.addAddress(userDoc.phone, msgData.na, (err) => {
+						if (err) console.log(`Error X - ${err}`);
 					});
 				}
 			});
 			break;
 
 		case 'newOrder':
-			if (msgData.token == undefined) {
-				sendMessage(JSON.stringify({ type: 'orderFailure', cTime: getTime(), msg: 'User not logged in' }), rinfo);
-				return;
-			}
-			const token = msgData.token;
-
-			if (msgData.sa == undefined || msgData.ra == undefined || msgData.rPhone == undefined) {
-				sendMessage(JSON.stringify({ type: 'orderFailure', cTime: getTime(), msg: 'Please enter Pickup and Delivery locations' }), rinfo);
+			if (msgData.token == undefined || msgData.pickup == undefined || msgData.delivery == undefined || msgData.charge == undefined) {
+				sendMessage(JSON.stringify({ type: 'orderFailure', cTime: getTime(), msg: 'Bad Request' }), rinfo);
 				return;
 			}
 
-			const sAddress = msgData.sa;
-			const rAddress = msgData.ra;
-			const rPhone = msgData.rPhone;
-
-			if (sAddress == '' || rAddress == '' || rPhone == '') {
-				sendMessage(JSON.stringify({ type: 'orderFailure', cTime: getTime(), msg: 'Please enter Pickup and Delivery locations' }), rinfo);
-				return;
-			}
-
-			let sPhone;
+			let lPhone, orderDoc;
 			async.waterfall([
-				(callback) => jwt.verify(token, values.secret, callback),
-				(decoded, callback) => {
-					sPhone = decoded.phone;
-					User.exists(sPhone, callback);
+				(callback) => functions.verifyToken(msgData.token, callback),
+				(userDoc, callback) => {
+					lPhone = userDoc.phone;
+					Order.add({ phone: userDoc.phone, pickup: msgData.pickup, delivery: msgData.delivery, charge: msgData.charge }, callback);
 				},
-				(exists, callback) => {
-					if (!exists) callback('User not logged in');
-					else {
-						const orderData = {
-							sender: {
-								phone: sPhone,
-								address: sAddress
-							},
-							receiver: {
-								phone: rPhone,
-								address: rAddress
-							}
-						};
-						Order.add(orderData, callback);
-					}
-				},
-			], (err, orderDoc) => {
-				if (err) {
-					sendMessage(JSON.stringify({ type: 'orderFailure', cTime: getTime(), msg: err }), rinfo);
-					return;
+				(_orderDoc, callback) => {
+					orderDoc = _orderDoc;
+					User.addOrder(lPhone, orderDoc._id, callback);
 				}
-
-				sendMessage(JSON.stringify({ type: 'orderSuccess', cTime: getTime(), doc: orderDoc }), rinfo);
+			], (err, orderDoc) => {
+				if (err) sendMessage(JSON.stringify({ type: 'orderFailure', cTime: getTime(), msg: 'Error placing order' }), rinfo);
+				else sendMessage(JSON.stringify({ type: 'orderSuccess', cTime: getTime(), doc: orderDoc }), rinfo);
 			});
-			
 			break;
 	}
 });
