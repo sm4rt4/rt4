@@ -148,7 +148,7 @@ server.on('message', function (message, rinfo) {
 					orderDoc = _orderDoc;
 					User.addOrder(lPhone, orderDoc._id, callback);
 				}
-			], (err, orderDoc) => {
+			], (err) => {
 				if (err) sendMessage(JSON.stringify({ type: 'orderFailure', cTime: getTime(), msg: 'Error placing order' }), rinfo);
 				else sendMessage(JSON.stringify({ type: 'orderSuccess', cTime: getTime(), doc: orderDoc }), rinfo);
 			});
