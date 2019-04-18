@@ -43,5 +43,19 @@ module.exports.updateAddresses = (phone, addresses, callback) => {
 }
 
 module.exports.addOrder = (phone, orderId, callback) => {
-	User.updateOne({ phone }, { $push: { orders: orderId } }, callback);
+	User.findOne({ phone }, 'orders', (err, doc) => {
+		if (!err && doc != null) {
+			let orders = doc.orders;
+			if (orders.length >= 20) {
+				orders.splice(19, orders.length - 19);
+				orders.push(orderId);
+
+				User.updateOne({ phone }, { $set: { orders } }, callback);
+			} else {
+				User.updateOne({ phone }, { $push: { orders: orderId } }, callback);
+			}
+		} else {
+			User.updateOne({ phone }, { $push: { orders: orderId } }, callback);
+		}
+	});
 }
