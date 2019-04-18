@@ -17,3 +17,5 @@ module.exports.get = (phone, hash, callback) => {
 module.exports.getRider = (callback) => {
 	Rider.findOne({}, callback);
 }
+
+// db.riders.insertOne({ name: 'Gulshan', phone: '1111111111', hash: 'abcdhash', orders: [], joined: 1555584373808 });
