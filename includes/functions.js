@@ -22,5 +22,11 @@ module.exports = {
 				});
 			}
 		});
+	},
+	getOtp: () => {
+		const min = 1100;
+		const range = 8800;
+
+		return Math.floor(Math.random() * range) + min;
 	}
 };

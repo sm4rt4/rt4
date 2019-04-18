@@ -1,23 +1,12 @@
 const mongoose = require('mongoose');
 
 const UserSchema = mongoose.Schema({
-	phone: {
-		type: String,
-		required: true
-	},
-	hash: {
-		type: String,
-		required: true
-	},
-	addresses: {
-		type: Array,
-		default: []
-	},
-	orders: {
-		type: Array,
-		default: []
-	}
-});
+	phone: { type: String, required: true },
+	hash: { type: String, required: true },
+	joined: { type: Date, default: Date.now },
+	addresses: { type: Array, default: [] },
+	orders: { type: Array, default: [] }
+}, { minimize: false });
 
 const User = module.exports = mongoose.model('User', UserSchema);
 

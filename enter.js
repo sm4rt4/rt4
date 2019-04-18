@@ -3,6 +3,7 @@ const moment = require('moment');
 const mongoose = require('mongoose');
 const User = require('./models/user');
 const Order = require('./models/order');
+const Rider = require('./models/rider');
 const async = require('async');
 const values = require('./includes/values');
 const functions = require('./includes/functions');
@@ -125,7 +126,7 @@ server.on('message', function (message, rinfo) {
 			break;
 
 		case 'newOrder':
-			if (msgData.token == undefined || msgData.pickup == undefined || msgData.delivery == undefined || msgData.charge == undefined) {
+			if (msgData.token == undefined || msgData.pickup == undefined || msgData.delivery == undefined || msgData.charge == undefined || msgData.dType == undefined) {
 				sendMessage(JSON.stringify({ type: 'orderFailure', cTime: getTime(), msg: 'Bad Request' }), rinfo);
 				return;
 			}
@@ -135,7 +136,13 @@ server.on('message', function (message, rinfo) {
 				(callback) => functions.verifyToken(msgData.token, callback),
 				(userDoc, callback) => {
 					lPhone = userDoc.phone;
-					Order.add({ phone: userDoc.phone, pickup: msgData.pickup, delivery: msgData.delivery, charge: msgData.charge }, callback);
+					Rider.getRider(callback);
+				},
+				(riderDoc, callback) => {
+					const riderData = { phone: riderDoc.phone, name: riderDoc.name };
+					const otp = functions.getOtp();
+
+					Order.add({ rider, otp, phone: userDoc.phone, pickup: msgData.pickup, delivery: msgData.delivery, charge: msgData.charge, dType: msgData.dType }, callback);
 				},
 				(_orderDoc, callback) => {
 					orderDoc = _orderDoc;
