@@ -142,7 +142,7 @@ server.on('message', function (message, rinfo) {
 					const riderData = { phone: riderDoc.phone, name: riderDoc.name };
 					const otp = functions.getOtp();
 
-					Order.add({ rider, otp, phone: userDoc.phone, pickup: msgData.pickup, delivery: msgData.delivery, charge: msgData.charge, dType: msgData.dType }, callback);
+					Order.add({ rider: riderData, otp, phone: userDoc.phone, pickup: msgData.pickup, delivery: msgData.delivery, charge: msgData.charge, dType: msgData.dType }, callback);
 				},
 				(_orderDoc, callback) => {
 					orderDoc = _orderDoc;
