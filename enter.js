@@ -156,6 +156,7 @@ server.on('message', function (message, rinfo) {
 
 		case 'getOrder':
 			if (msgData.token == undefined || msgData.oId == undefined) {
+				console.log(`errd`);				
 				return;
 			}
 
@@ -163,6 +164,9 @@ server.on('message', function (message, rinfo) {
 				(callback) => functions.verifyToken(msgData.token, callback),
 				(userDoc, callback) => Order.get(msgData.oId, callback)
 			], (err, orderDoc) => {
+				console.log(`errc - ${err}`);
+				console.log(`orderDoc - ${orderDoc}`);
+
 				if (!err && orderDoc != null) sendMessage(JSON.stringify({ type: 'ofSuccess', cTime: getTime(), doc: orderDoc }), rinfo);
 			});
 			break;
