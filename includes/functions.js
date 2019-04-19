@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const User = require('../models/user');
+const Rider = require('../models/rider');
 const values = require('./values');
 
 module.exports = {
