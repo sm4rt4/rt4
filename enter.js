@@ -178,6 +178,7 @@ server.on('message', function (message, rinfo) {
 
 			functions.verifyToken(msgData.token, (err, userDoc) => {
 				if (err) {
+					console.log(`erre - ${err}`);
 					return;
 				} else {
 					let newAddresses = userDoc.addresses;
@@ -187,7 +188,12 @@ server.on('message', function (message, rinfo) {
 						}
 					}
 
-					User.updateAddresses(userDoc.phone, newAddresses);
+					User.updateAddresses(userDoc.phone, newAddresses, (err) => {
+						if (err) {
+							console.log(`errf - ${err}`);
+							return;
+						}
+					});
 				}
 			});
 			break;
