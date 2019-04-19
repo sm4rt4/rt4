@@ -184,7 +184,7 @@ server.on('message', function (message, rinfo) {
 					let newAddresses = userDoc.addresses;
 					for (let i = 0; i < userDoc.addresses.length; i++) {
 						for (let j = 0; j < msgData.names.length; j++) {
-							if (userDoc.addresses[i].name == msgData.names[i].name) newAddresses.splice(i, 1);
+							if (userDoc.addresses[i].name == msgData.names[i]) newAddresses.splice(i, 1);
 						}
 					}
 
