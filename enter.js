@@ -159,7 +159,7 @@ server.on('message', function (message, rinfo) {
 				return;
 			}
 
-			let lPhone, orderDoc;
+			let lPhone, orderDoc, rPhone;
 			async.waterfall([
 				(callback) => functions.verifyToken(msgData.token, callback),
 				(userDoc, callback) => {
@@ -170,12 +170,16 @@ server.on('message', function (message, rinfo) {
 					const riderData = { phone: riderDoc.phone, name: riderDoc.name };
 					const otp = functions.getOtp();
 
+					rPhone = riderDoc.phone;
 					Order.add({ rider: riderData, otp, phone: lPhone, pickup: msgData.pickup, delivery: msgData.delivery, charge: msgData.charge, dType: msgData.dType }, callback);
 				},
 				(_orderDoc, callback) => {
 					orderDoc = _orderDoc;
 					User.addOrder(lPhone, orderDoc._id, callback);
-				}
+				},
+				(_, callback) => {
+					Rider.addOrder(rPhone, orderDoc._id, callback);
+				},
 			], (err) => {
 				if (err) sendMessage(JSON.stringify({ type: 'orderFailure', cTime: getTime(), msg: 'Error placing order' }), rinfo);
 				else sendMessage(JSON.stringify({ type: 'orderSuccess', cTime: getTime(), doc: orderDoc }), rinfo);

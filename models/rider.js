@@ -27,5 +27,9 @@ module.exports.getRider = (callback) => {
 	Rider.findOne({}, callback);
 }
 
+module.exports.addOrder = (phone, orderId, callback) => {
+	Rider.updateOne({ phone }, { $push: { pending: orderId } }, callback);	
+}
+
 // db.riders.remove({});
 // db.riders.insertOne({ name: 'Gulshan', phone: '1111111111', hash: 'abcdhash', pending: [], completed: [], joined: 1555584373808 });
