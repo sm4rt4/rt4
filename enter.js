@@ -123,7 +123,15 @@ server.on('message', function (message, rinfo) {
 					} else if (loginRequests[msgData.phone].uType == 'r') {
 						async.waterfall([
 							(callback) => Rider.updateHash(phone, hash, callback)
-						]);
+						], (err, userDoc) => {
+							if (err) {
+								sendMessage(JSON.stringify({ type: 'loginFailure', cTime: getTime() }), loginRequests[phone].rinfo);
+								return;
+							}
+	
+							const token = functions.generateToken(userDoc);
+							sendMessage(JSON.stringify({ type: 'loginSuccess', cTime: getTime(), doc: userDoc, token }), loginRequests[phone].rinfo);
+						});
 					}
 				}
 			}

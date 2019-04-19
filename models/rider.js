@@ -20,13 +20,7 @@ module.exports.getAuthUser = (phone, hash, callback) => {
 }
 
 module.exports.updateHash = (phone, hash, callback) => {
-	Rider.findOneAndUpdate({ phone }, { $set: { hash } }, { new: true }, (err, doc, res) => {
-		// if (err || doc == null) callback(err);
-
-		console.log(`err - ${err}`);
-		console.log(`doc - ${doc}`);
-		console.log(`res - ${res}`);
-	});
+	Rider.findOneAndUpdate({ phone }, { $set: { hash } }, { new: true }, callback);
 }
 
 module.exports.getRider = (callback) => {
