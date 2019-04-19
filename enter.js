@@ -52,6 +52,7 @@ server.on('message', function (message, rinfo) {
 			const hash = functions.getHash(msgData.cTime);
 
 			loginRequests[msgData.phone] = {
+				uType: msgData.uType,
 				hash,
 				rTime: new Date(),
 				rinfo
@@ -75,10 +76,23 @@ server.on('message', function (message, rinfo) {
 			});
 			break;
 
+		case 'rTokenVerify':
+			if (msgData.token == undefined) {
+				sendMessage(JSON.stringify({ type: 'tvFailure', cTime: getTime() }), rinfo);
+				return;
+			}
+
+			functions.verifyRiderToken(msgData.token, (err, userDoc) => {
+				if (err) {
+					sendMessage(JSON.stringify({ type: 'tvFailure', cTime: getTime()}), rinfo);
+				} else {
+					sendMessage(JSON.stringify({ type: 'tvSuccess', cTime: getTime(), doc: userDoc }), rinfo);
+				}
+			});
+			break;
+
 		case 'newCall':
 			if (loginRequests[msgData.phone] != null) {
-				// console.log(JSON.stringify(loginRequests[msgData.phone], null, 4));
-
 				const timeRn = moment();
 				const duration = moment.duration(timeRn.diff(loginRequests[msgData.phone].rTime));
 				const mins = duration.asMinutes();
@@ -87,24 +101,30 @@ server.on('message', function (message, rinfo) {
 					const phone = msgData.phone;
 					const hash = loginRequests[phone].hash;
 
-					async.waterfall([
-						(callback) => User.exists(phone, callback),
-						(exists, callback) => {
-							if (exists) User.updateHash(phone, hash, callback);
-							else {
-								const userData = { phone, hash };
-								User.add(userData, callback);
+					if (loginRequests[msgData.phone].uType == 'u') {
+						async.waterfall([
+							(callback) => User.exists(phone, callback),
+							(exists, callback) => {
+								if (exists) User.updateHash(phone, hash, callback);
+								else {
+									const userData = { phone, hash };
+									User.add(userData, callback);
+								}
 							}
-						}
-					], (err, userDoc) => {
-						if (err) {
-							sendMessage(JSON.stringify({ type: 'loginFailure', cTime: getTime() }), loginRequests[phone].rinfo);
-							return;
-						}
-
-						const token = functions.generateToken(userDoc);
-						sendMessage(JSON.stringify({ type: 'loginSuccess', cTime: getTime(), doc: userDoc, token }), loginRequests[phone].rinfo);
-					});
+						], (err, userDoc) => {
+							if (err) {
+								sendMessage(JSON.stringify({ type: 'loginFailure', cTime: getTime() }), loginRequests[phone].rinfo);
+								return;
+							}
+	
+							const token = functions.generateToken(userDoc);
+							sendMessage(JSON.stringify({ type: 'loginSuccess', cTime: getTime(), doc: userDoc, token }), loginRequests[phone].rinfo);
+						});
+					} else if (loginRequests[msgData.phone].uType == 'r') {
+						async.waterfall([
+							(callback) => Rider.updateHash(phone, hash, callback)
+						]);
+					}
 				}
 			}
 			break;

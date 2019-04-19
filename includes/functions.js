@@ -23,6 +23,17 @@ module.exports = {
 			}
 		});
 	},
+	verifyRiderToken: (token, callback) => {
+		jwt.verify(token, values.secret, (err, decoded) => {
+			if (err) callback('Unauthorized');
+			else {
+				Rider.getAuthUser(decoded.data.phone, decoded.data.hash, (err, userDoc) => {
+					if (err || userDoc == null) callback('Unauthorized');
+					else callback(null, userDoc);
+				});
+			}
+		});
+	},
 	getOtp: () => {
 		const min = 1100;
 		const range = 8800;
