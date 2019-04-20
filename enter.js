@@ -253,11 +253,11 @@ server.on('message', function (message, rinfo) {
 				return;
 			}
 
-			let rPhone;
+			let rPhone2;
 			async.waterfall([
 				(callback) => functions.verifyRiderToken(msgData.token, callback),
 				(userDoc, callback) => {
-					rPhone = userDoc.phone;
+					rPhone2 = userDoc.phone;
 
 					if (msgData.status == 3) {
 						Order.get(msgData.oId, (err, orderDoc) => {
@@ -273,7 +273,7 @@ server.on('message', function (message, rinfo) {
 				(callback) => Order.updateStatus(msgData.oId, msgData.status, callback),
 				(_, callback) => {
 					if (msgData.status == 3) {
-						Rider.orderCompleted(rPhone, msgData.oId, callback);
+						Rider.orderCompleted(rPhone2, msgData.oId, callback);
 					} else callback(null, null);
 				}
 			], (err, _) => {
