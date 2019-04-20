@@ -43,6 +43,6 @@ module.exports = {
 	},
 	generateOrderId: () => {
 		const d = new Date();
-		return d.getMilliseconds();
+		return d.getTime().toString();
 	}
 };
