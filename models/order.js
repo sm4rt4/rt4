@@ -13,9 +13,10 @@ const OrderSchema = mongoose.Schema({
 });
 
 // -1 = Canceled
-// 0 = Yet to Pickup 
-// 1 = On the Way
-// 2 = Delivered
+// 0 = Yet to be Pickup
+// 1 = Picked
+// 2 = On the Way
+// 3 = Delivered
 
 const Order = module.exports = mongoose.model('Order', OrderSchema);
 
@@ -26,4 +27,8 @@ module.exports.add = (orderData, callback) => {
 
 module.exports.get = (orderId, callback) => {
 	Order.findById(orderId, callback);
+}
+
+module.exports.updateStatus = (_id, status, callback) => {
+	Order.updateOne({ _id }, { status }, callback);
 }

@@ -246,6 +246,41 @@ server.on('message', function (message, rinfo) {
 				}
 			});
 			break;
+
+		case 'upOrder':
+			if (msgData.token == undefined || msgData.oId == undefined || msgData.status == undefined || msgData.otp == undefined) {
+				sendMessage(JSON.stringify({ type: 'oUpFailure', cTime: getTime() }), rinfo);
+				return;
+			}
+
+			let rPhone;
+			async.waterfall([
+				(callback) => functions.verifyRiderToken(msgData.token, callback),
+				(userDoc, callback) => {
+					rPhone = userDoc.phone;
+
+					if (msgData.status == 3) {
+						Order.get(msgData.oId, (err, orderDoc) => {
+							if (err) callback('ErrorX');
+							else if (orderDoc == null) callback('ErrorY');
+							else {
+								if (orderDoc.otp == msgData.otp) callback(null);
+								else callback('ErrorZ');
+							}
+						});
+					} else callback(null);
+				},
+				(callback) => Order.updateStatus(msgData.oId, msgData.status, callback),
+				(_, callback) => {
+					if (msgData.status == 3) {
+						Rider.orderCompleted(rPhone, msgData.oId, callback);
+					} else callback(null, null);
+				}
+			], (err, _) => {
+				if (err) sendMessage(JSON.stringify({ type: 'oUpSuccess', cTime: getTime() }), rinfo);
+				else sendMessage(JSON.stringify({ type: 'oUpFailure', cTime: getTime() }), rinfo);
+			});
+			break;
 	}
 });
 
