@@ -32,7 +32,7 @@ module.exports.addOrder = (phone, orderId, callback) => {
 }
 
 module.exports.orderCompleted = (phone, orderId, callback) => {
-	Rider.findOneAndUpdate({ phone }, { $pull: { pending: orderId }, $push: { completed: orderId } }, { new: true }, callback);
+	Rider.updateOne({ phone }, { $pull: { pending: orderId }, $push: { completed: orderId } }, callback);
 }
 
 // db.riders.remove({});
