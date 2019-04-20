@@ -319,7 +319,7 @@ function sendMessage(msg, rinfo) {
 		server.send(msg, rinfo.port, rinfo.address);
 		i++;
 
-		if (i == 5) clearInterval(il);
+		if (i == 10) clearInterval(il);
 	}, 500);
 }
 
