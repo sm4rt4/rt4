@@ -29,6 +29,6 @@ module.exports.get = (orderId, callback) => {
 	Order.findById(orderId, callback);
 }
 
-module.exports.updateStatus = (id, status, callback) => {
-	Order.updateOne({ id }, { status }, callback);
+module.exports.updateStatus = (_id, status, callback) => {
+	Order.updateOne({ _id }, { status }, callback);
 }
