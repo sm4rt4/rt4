@@ -284,8 +284,8 @@ server.on('message', function (message, rinfo) {
 			], (err, _) => {
 				if (err) console.log(`ErrorL - ${err}`);
 
-				if (err) sendMessage(JSON.stringify({ type: 'oUpSuccess', cTime: getTime() }), rinfo);
-				else sendMessage(JSON.stringify({ type: 'oUpFailure', cTime: getTime() }), rinfo);
+				if (err) sendMessage(JSON.stringify({ type: 'oUpFailure', cTime: getTime() }), rinfo);
+				else sendMessage(JSON.stringify({ type: 'oUpSuccess', cTime: getTime() }), rinfo);
 			});
 			break;
 	}
