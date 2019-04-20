@@ -249,6 +249,11 @@ server.on('message', function (message, rinfo) {
 
 		case 'upOrder':
 			if (msgData.token == undefined || msgData.oId == undefined || msgData.status == undefined || msgData.otp == undefined) {
+				console.log(`msgData.token - ${msgData.token}`);
+				console.log(`msgData.oId - ${msgData.oId}`);
+				console.log(`msgData.status - ${msgData.status}`);
+				console.log(`msgData.otp - ${msgData.status}`);
+				
 				sendMessage(JSON.stringify({ type: 'oUpFailure', cTime: getTime() }), rinfo);
 				return;
 			}
@@ -278,7 +283,7 @@ server.on('message', function (message, rinfo) {
 				}
 			], (err, _) => {
 				if (err) console.log(`ErrorL - ${err}`);
-				
+
 				if (err) sendMessage(JSON.stringify({ type: 'oUpSuccess', cTime: getTime() }), rinfo);
 				else sendMessage(JSON.stringify({ type: 'oUpFailure', cTime: getTime() }), rinfo);
 			});
