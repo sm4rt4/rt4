@@ -165,14 +165,14 @@ server.on('message', function (message, rinfo) {
 					const otp = functions.getOtp();
 
 					rPhone = riderDoc.phone;
-					Order.add({ rider: riderData, otp, phone: lPhone, pickup: msgData.pickup, delivery: msgData.delivery, charge: msgData.charge, dType: msgData.dType }, callback);
+					Order.add({ oi: functions.generateOrderId(), rider: riderData, otp, phone: lPhone, pickup: msgData.pickup, delivery: msgData.delivery, charge: msgData.charge, dType: msgData.dType }, callback);
 				},
 				(_orderDoc, callback) => {
 					orderDoc = _orderDoc;
-					User.addOrder(lPhone, orderDoc.id, callback);
+					User.addOrder(lPhone, orderDoc.oi, callback);
 				},
 				(_, callback) => {
-					Rider.addOrder(rPhone, orderDoc.id, callback);
+					Rider.addOrder(rPhone, orderDoc.oi, callback);
 				}
 			], (err) => {
 				if (err) sendMessage(JSON.stringify({ type: 'orderFailure', cTime: getTime(), msg: 'Error placing order' }), rinfo);
@@ -243,11 +243,6 @@ server.on('message', function (message, rinfo) {
 
 		case 'upOrder':
 			if (msgData.token == undefined || msgData.oId == undefined || msgData.status == undefined || msgData.otp == undefined) {
-				console.log(`msgData.token - ${msgData.token}`);
-				console.log(`msgData.oId - ${msgData.oId}`);
-				console.log(`msgData.status - ${msgData.status}`);
-				console.log(`msgData.otp - ${msgData.status}`);
-				
 				sendMessage(JSON.stringify({ type: 'oUpFailure', cTime: getTime() }), rinfo);
 				return;
 			}

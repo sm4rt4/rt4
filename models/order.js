@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const OrderSchema = mongoose.Schema({
+	oi: { type: String, required: true },
 	phone: { type: String, required: true },
 	pickup: { type: Object, required: true },
 	delivery: { type: Object, required: true },
@@ -25,10 +26,10 @@ module.exports.add = (orderData, callback) => {
 	newOrder.save(callback);
 }
 
-module.exports.get = (orderId, callback) => {
-	Order.findById(orderId, callback);
+module.exports.get = (oi, callback) => {
+	Order.findOne({ oi }, callback);
 }
 
-module.exports.updateStatus = (_id, status, callback) => {
-	Order.updateOne({ _id }, { status }, callback);
+module.exports.updateStatus = (oi, status, callback) => {
+	Order.updateOne({ oi }, { status }, callback);
 }

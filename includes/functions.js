@@ -40,5 +40,9 @@ module.exports = {
 		const range = 8800;
 
 		return Math.floor(Math.random() * range) + min;
+	},
+	generateOrderId: () => {
+		const d = new Date();
+		return d.getMilliseconds();
 	}
 };
