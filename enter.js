@@ -142,6 +142,8 @@ server.on('message', function (message, rinfo) {
 				if (err) {
 					return;
 				} else {
+					oPhones[userDoc.phone] = rinfo;
+
 					User.addAddress(userDoc.phone, msgData.na, (err) => {
 						if (err) console.log(`Error X - ${err}`);
 					});
@@ -159,6 +161,8 @@ server.on('message', function (message, rinfo) {
 			async.waterfall([
 				(callback) => functions.verifyToken(msgData.token, callback),
 				(userDoc, callback) => {
+					oPhones[userDoc.phone] = rinfo;
+
 					lPhone = userDoc.phone;
 					Rider.getRider(callback);
 				},
@@ -191,7 +195,10 @@ server.on('message', function (message, rinfo) {
 
 			async.waterfall([
 				(callback) => functions.verifyToken(msgData.token, callback),
-				(userDoc, callback) => Order.get(msgData.oId, callback)
+				(userDoc, callback) => {
+					oPhones[userDoc.phone] = rinfo;
+					Order.get(msgData.oId, callback);
+				}
 			], (err, orderDoc) => {
 				console.log(`errc - ${err}`);
 				console.log(`orderDoc - ${orderDoc}`);
@@ -208,7 +215,10 @@ server.on('message', function (message, rinfo) {
 
 			async.waterfall([
 				(callback) => functions.verifyRiderToken(msgData.token, callback),
-				(userDoc, callback) => Order.get(msgData.oId, callback)
+				(userDoc, callback) => {
+					oPhones[userDoc.phone] = rinfo;
+					Order.get(msgData.oId, callback);
+				}
 			], (err, orderDoc) => {
 				console.log(`errc - ${err}`);
 				console.log(`orderDoc - ${orderDoc}`);
@@ -227,6 +237,8 @@ server.on('message', function (message, rinfo) {
 					console.log(`erre - ${err}`);
 					return;
 				} else {
+					oPhones[userDoc.phone] = rinfo;
+
 					let newAddresses = userDoc.addresses;
 					for (let i = 0; i < userDoc.addresses.length; i++) {
 						for (let j = 0; j < msgData.names.length; j++) {
@@ -254,6 +266,8 @@ server.on('message', function (message, rinfo) {
 			async.waterfall([
 				(callback) => functions.verifyRiderToken(msgData.token, callback),
 				(userDoc, callback) => {
+					oPhones[userDoc.phone] = rinfo;
+					
 					rPhone2 = userDoc.phone;
 
 					Order.get(msgData.oId, (err, orderDoc) => {
