@@ -173,8 +173,10 @@ server.on('message', function (message, rinfo) {
 					orderDoc = _orderDoc;
 					User.addOrder(lPhone, orderDoc.oi, callback);
 				},
-				(_, callback) => Rider.addOrder(rPhone, orderDoc.oi, callback),
-				(_, callback) => notify(rPhone, 'New Order Received')
+				(_, callback) => {
+					notify(rPhone, 'New Order Received');
+					Rider.addOrder(rPhone, orderDoc.oi, callback);
+				}
 			], (err) => {
 				if (err) sendMessage(JSON.stringify({ type: 'orderFailure', cTime: getTime(), msg: 'Error placing order' }), rinfo);
 				else sendMessage(JSON.stringify({ type: 'orderSuccess', cTime: getTime(), doc: orderDoc }), rinfo);
