@@ -174,7 +174,7 @@ server.on('message', function (message, rinfo) {
 					User.addOrder(lPhone, orderDoc.oi, callback);
 				},
 				(_, callback) => {
-					notify(rPhone, 'New Order Received');
+					notify(rPhone, 'New Order', 'New Order Received');
 					Rider.addOrder(rPhone, orderDoc.oi, callback);
 				}
 			], (err) => {
@@ -250,25 +250,41 @@ server.on('message', function (message, rinfo) {
 				return;
 			}
 
-			let rPhone2;
+			let rPhone2, oDoc;
 			async.waterfall([
 				(callback) => functions.verifyRiderToken(msgData.token, callback),
 				(userDoc, callback) => {
 					rPhone2 = userDoc.phone;
 
-					if (msgData.status == 3) {
-						Order.get(msgData.oId, (err, orderDoc) => {
-							if (err) callback('ErrorX');
-							else if (orderDoc == null) callback('ErrorY');
-							else {
-								if (orderDoc.otp == msgData.otp) callback(null);
-								else callback('ErrorZ');
-							}
-						});
-					} else callback(null);
+					Order.get(msgData.oId, (err, orderDoc) => {
+						if (err) callback('ErrorX');
+						else if (orderDoc == null) callback('ErrorY');
+						else {
+							oDoc = orderDoc;
+
+							if (msgData.status == 3 && orderDoc.otp != msgData.otp) callback('ErrorZ');
+							else callback(null);
+						}
+					});
+
+					// if (msgData.status == 3) {
+					// 	Order.get(msgData.oId, (err, orderDoc) => {
+					// 		if (err) callback('ErrorX');
+					// 		else if (orderDoc == null) callback('ErrorY');
+					// 		else {
+					// 			if (orderDoc.otp == msgData.otp) callback(null);
+					// 			else callback('ErrorZ');
+					// 		}
+					// 	});
+					// } else callback(null);
 				},
 				(callback) => Order.updateStatus(msgData.oId, msgData.status, callback),
 				(_, callback) => {
+					let msg = 'Your package has been delivered';
+					if (msgData.status == 1) msg = 'Your package has been picked';
+					if (msgData.status == 2) msg = 'Your package is out for delivery';
+					notify(oDoc.phone, 'Package Status Update', msg);
+
 					if (msgData.status == 3) {
 						Rider.orderCompleted(rPhone2, msgData.oId, callback);
 					} else callback(null, null);
@@ -284,9 +300,9 @@ server.on('message', function (message, rinfo) {
 });
 
 const oPhones = {};
-function notify(phone, msg) {
+function notify(phone, title, msg) {
 	if (oPhones[phone] != null) {
-		sendMessage(JSON.stringify({ type: 'n', msg, cTime: getTime() }), oPhones[phone]);
+		sendMessage(JSON.stringify({ type: 'n', title, msg, cTime: getTime() }), oPhones[phone]);
 	}
 }
 
