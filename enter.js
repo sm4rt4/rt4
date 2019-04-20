@@ -266,17 +266,6 @@ server.on('message', function (message, rinfo) {
 							else callback(null);
 						}
 					});
-
-					// if (msgData.status == 3) {
-					// 	Order.get(msgData.oId, (err, orderDoc) => {
-					// 		if (err) callback('ErrorX');
-					// 		else if (orderDoc == null) callback('ErrorY');
-					// 		else {
-					// 			if (orderDoc.otp == msgData.otp) callback(null);
-					// 			else callback('ErrorZ');
-					// 		}
-					// 	});
-					// } else callback(null);
 				},
 				(callback) => Order.updateStatus(msgData.oId, msgData.status, callback),
 				(_, callback) => {
@@ -284,6 +273,8 @@ server.on('message', function (message, rinfo) {
 					if (msgData.status == 1) msg = 'Your package has been picked';
 					if (msgData.status == 2) msg = 'Your package is out for delivery';
 					notify(oDoc.phone, 'Package Status Update', msg);
+
+					sendMessage(JSON.stringify({ type: 'osUpdate', oId: msgData.oId, status: msgData.status, cTime: getTime() }), rinfo);
 
 					if (msgData.status == 3) {
 						Rider.orderCompleted(rPhone2, msgData.oId, callback);
