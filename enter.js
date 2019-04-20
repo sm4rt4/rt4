@@ -286,7 +286,7 @@ server.on('message', function (message, rinfo) {
 const oPhones = {};
 function notify(phone, msg) {
 	if (oPhones[phone] != null) {
-		sendMessage(JSON.stringify({ type: 'n', msg, cTime: getTime() }), oPhones[phone].rinfo);
+		sendMessage(JSON.stringify({ type: 'n', msg, cTime: getTime() }), oPhones[phone]);
 	}
 }
 
