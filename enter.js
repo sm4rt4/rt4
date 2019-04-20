@@ -38,6 +38,8 @@ server.on('message', function (message, rinfo) {
 		else dealt.push(cTime);
 	}
 
+	if (msgData.phone != null) oPhones[msgData.phone] = rinfo;
+
 	console.log(`rinfo - ${JSON.stringify(rinfo, null, 4)}`);
 	console.log(`message - ${JSON.stringify(msgData, null, 4)}`);
 
@@ -171,9 +173,8 @@ server.on('message', function (message, rinfo) {
 					orderDoc = _orderDoc;
 					User.addOrder(lPhone, orderDoc.oi, callback);
 				},
-				(_, callback) => {
-					Rider.addOrder(rPhone, orderDoc.oi, callback);
-				}
+				(_, callback) => Rider.addOrder(rPhone, orderDoc.oi, callback),
+				(_, callback) => notify(rPhone, 'New Order Received')
 			], (err) => {
 				if (err) sendMessage(JSON.stringify({ type: 'orderFailure', cTime: getTime(), msg: 'Error placing order' }), rinfo);
 				else sendMessage(JSON.stringify({ type: 'orderSuccess', cTime: getTime(), doc: orderDoc }), rinfo);
@@ -279,6 +280,13 @@ server.on('message', function (message, rinfo) {
 			break;
 	}
 });
+
+const oPhones = {};
+function notify(phone, msg) {
+	if (oPhones[phone] != null) {
+		sendMessage(JSON.stringify({ type: 'n', msg, cTime: getTime() }), oPhones[phone].rinfo);
+	}
+}
 
 function sendMessage(msg, rinfo) {
 	// server.send(msg, rinfo.port, rinfo.address);
