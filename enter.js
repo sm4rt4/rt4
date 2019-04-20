@@ -7,7 +7,6 @@ const Rider = require('./models/rider');
 const async = require('async');
 const values = require('./includes/values');
 const functions = require('./includes/functions');
-const jwt = require('jsonwebtoken');
 
 mongoose.connect(values.dbUrl, {
 	useNewUrlParser: true,
@@ -44,10 +43,6 @@ server.on('message', function (message, rinfo) {
 
 	const msgType = msgData.type;
 	switch (msgType) {
-		// case 'phoneHi':
-		// 	phoneServer = { address: rinfo.address, port: rinfo.port };
-		// 	break;
-
 		case 'loginRequest':
 			const hash = functions.getHash(msgData.cTime);
 
@@ -58,7 +53,6 @@ server.on('message', function (message, rinfo) {
 				rinfo
 			};
 
-			// console.log(JSON.stringify(loginRequests, null, 4));
 			break;
 
 		case 'tokenVerify':
@@ -175,11 +169,11 @@ server.on('message', function (message, rinfo) {
 				},
 				(_orderDoc, callback) => {
 					orderDoc = _orderDoc;
-					User.addOrder(lPhone, orderDoc._id, callback);
+					User.addOrder(lPhone, orderDoc.id, callback);
 				},
 				(_, callback) => {
-					Rider.addOrder(rPhone, orderDoc._id, callback);
-				},
+					Rider.addOrder(rPhone, orderDoc.id, callback);
+				}
 			], (err) => {
 				if (err) sendMessage(JSON.stringify({ type: 'orderFailure', cTime: getTime(), msg: 'Error placing order' }), rinfo);
 				else sendMessage(JSON.stringify({ type: 'orderSuccess', cTime: getTime(), doc: orderDoc }), rinfo);
