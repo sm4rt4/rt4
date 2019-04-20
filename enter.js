@@ -302,7 +302,7 @@ server.on('message', function (message, rinfo) {
 const oPhones = {};
 function notify(phone, title, msg) {
 	if (oPhones[phone] != null) {
-		sendMessage(JSON.stringify({ type: 'n', title, msg, cTime: getTime() }), oPhones[phone]);
+		sendMessage(JSON.stringify({ type: 'n', title, msg, cTime: getTimeWithInc(100) }), oPhones[phone]);
 	}
 }
 
@@ -321,6 +321,11 @@ function sendMessage(msg, rinfo) {
 function getTime() {
 	const d = new Date();
 	return d.getTime().toString();
+}
+
+function getTimeWithInc(inc) {
+	const d = new Date();
+	return '' + (d.getTime() + inc);
 }
 
 server.bind(8080);
