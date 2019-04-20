@@ -38,8 +38,6 @@ server.on('message', function (message, rinfo) {
 		else dealt.push(cTime);
 	}
 
-	if (msgData.phone != null) oPhones[msgData.phone] = rinfo;
-
 	console.log(`rinfo - ${JSON.stringify(rinfo, null, 4)}`);
 	console.log(`message - ${JSON.stringify(msgData, null, 4)}`);
 
@@ -67,6 +65,7 @@ server.on('message', function (message, rinfo) {
 				if (err) {
 					sendMessage(JSON.stringify({ type: 'tvFailure', cTime: getTime()}), rinfo);
 				} else {
+					oPhones[userDoc.phone] = rinfo;
 					sendMessage(JSON.stringify({ type: 'tvSuccess', cTime: getTime(), doc: userDoc }), rinfo);
 				}
 			});
@@ -82,6 +81,7 @@ server.on('message', function (message, rinfo) {
 				if (err) {
 					sendMessage(JSON.stringify({ type: 'tvFailure', cTime: getTime()}), rinfo);
 				} else {
+					oPhones[userDoc.phone] = rinfo;
 					sendMessage(JSON.stringify({ type: 'tvSuccess', cTime: getTime(), doc: userDoc }), rinfo);
 				}
 			});
