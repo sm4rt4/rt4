@@ -53,6 +53,8 @@ server.on('message', function (message, rinfo) {
 		};
 
 		const partStr = msgData.b;
+		console.log(`partStr - ${partStr}`);
+
 		largeMessages[group].parts.push({ index: head.i, str: partStr });
 		largeMessages[group].left -= partStr.length;
 
