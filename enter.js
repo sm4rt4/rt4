@@ -27,27 +27,62 @@ const server = dgram.createSocket('udp4');
 
 const loginRequests = {};
 const dealt = [];
+const largeMessages = {};
 
 server.on('message', function (message, rinfo) {
 	const msgData = JSON.parse(message.toString());
-	
-	if (msgData.hasOwnProperty('cTime')) {
-		const cTime = msgData.cTime;
 
-		if (dealt.indexOf(cTime) >= 0) return;
-		else dealt.push(cTime);
-	}
+	// make sure the message has 'head' and 'body'
+	if (!msgData.hasOwnProperty('h') && !msgData.hasOwnProperty('b')) return;
+
+	const head = msgData.h;
+	const uid = head.u;
+
+	// make sure the request hasn't been dealt with yet
+	if (dealt.indexOf(uid) >= 0) return;
+	else dealt.push(uid);
+
+	// check if full message or part
+	let body;
+	if (head.hasOwnProperty('g') && head.hasOwnProperty('t') && head.hasOwnProperty('i')) {
+		const group = head.g;
+		if (!largeMessages[group]) largeMessages[group] = {
+			total: head.t,
+			left: head.t,
+			parts: []
+		};
+
+		const partStr = msgData.b;
+		largeMessages[group].parts.push({ index: head.i, str: partStr });
+		largeMessages[group].left -= partStr.length;
+
+		if (largeMessages[group].left == 0) {
+			let fullBodyString = '';
+			const parts = largeMessages[group].parts;
+			for (let i = 0; i < parts.length; i++) {
+				for (let j = 0; j < parts.length; j++) {
+					if (i == parts[j].index) {
+						fullBodyString += parts[j];
+						break;
+					}
+				}
+			}
+
+			body = JSON.parse(fullBodyString);
+		}
+		else return;
+	} else body = msgData.b;
 
 	console.log(`rinfo - ${JSON.stringify(rinfo, null, 4)}`);
-	console.log(`message - ${JSON.stringify(msgData, null, 4)}`);
+	console.log(`head - ${JSON.stringify(head, null, 4)}`);
+	console.log(`body - ${JSON.stringify(body, null, 4)}`);
 
-	const msgType = msgData.type;
-	switch (msgType) {
+	switch (body.type) {
 		case 'loginRequest':
-			const hash = functions.getHash(msgData.cTime);
+			const hash = functions.getHash(uid);
 
-			loginRequests[msgData.phone] = {
-				uType: msgData.uType,
+			loginRequests[body.phone] = {
+				uType: body.uType,
 				hash,
 				rTime: new Date(),
 				rinfo
@@ -56,12 +91,12 @@ server.on('message', function (message, rinfo) {
 			break;
 
 		case 'tokenVerify':
-			if (msgData.token == undefined) {
+			if (body.token == undefined) {
 				sendMessage(JSON.stringify({ type: 'tvFailure', cTime: getTime() }), rinfo);
 				return;
 			}
 
-			functions.verifyToken(msgData.token, (err, userDoc) => {
+			functions.verifyToken(body.token, (err, userDoc) => {
 				if (err) {
 					sendMessage(JSON.stringify({ type: 'tvFailure', cTime: getTime()}), rinfo);
 				} else {
@@ -72,12 +107,12 @@ server.on('message', function (message, rinfo) {
 			break;
 
 		case 'rTokenVerify':
-			if (msgData.token == undefined) {
+			if (body.token == undefined) {
 				sendMessage(JSON.stringify({ type: 'tvFailure', cTime: getTime() }), rinfo);
 				return;
 			}
 
-			functions.verifyRiderToken(msgData.token, (err, userDoc) => {
+			functions.verifyRiderToken(body.token, (err, userDoc) => {
 				if (err) {
 					sendMessage(JSON.stringify({ type: 'tvFailure', cTime: getTime()}), rinfo);
 				} else {
@@ -88,16 +123,16 @@ server.on('message', function (message, rinfo) {
 			break;
 
 		case 'newCall':
-			if (loginRequests[msgData.phone] != null) {
+			if (loginRequests[body.phone] != null) {
 				const timeRn = moment();
-				const duration = moment.duration(timeRn.diff(loginRequests[msgData.phone].rTime));
+				const duration = moment.duration(timeRn.diff(loginRequests[body.phone].rTime));
 				const mins = duration.asMinutes();
 
 				if (mins <= 2) {
-					const phone = msgData.phone;
+					const phone = body.phone;
 					const hash = loginRequests[phone].hash;
 
-					if (loginRequests[msgData.phone].uType == 'u') {
+					if (loginRequests[body.phone].uType == 'u') {
 						async.waterfall([
 							(callback) => User.exists(phone, callback),
 							(exists, callback) => {
@@ -116,7 +151,7 @@ server.on('message', function (message, rinfo) {
 							const token = functions.generateToken(userDoc);
 							sendMessage(JSON.stringify({ type: 'loginSuccess', cTime: getTime(), doc: userDoc, token }), loginRequests[phone].rinfo);
 						});
-					} else if (loginRequests[msgData.phone].uType == 'r') {
+					} else if (loginRequests[body.phone].uType == 'r') {
 						async.waterfall([
 							(callback) => Rider.updateHash(phone, hash, callback)
 						], (err, userDoc) => {
@@ -134,17 +169,17 @@ server.on('message', function (message, rinfo) {
 			break;
 
 		case 'newAddress':
-			if (msgData.token == undefined || msgData.na == undefined) {
+			if (body.token == undefined || body.na == undefined) {
 				return;
 			}
 
-			functions.verifyToken(msgData.token, (err, userDoc) => {
+			functions.verifyToken(body.token, (err, userDoc) => {
 				if (err) {
 					return;
 				} else {
 					oPhones[userDoc.phone] = rinfo;
 
-					User.addAddress(userDoc.phone, msgData.na, (err) => {
+					User.addAddress(userDoc.phone, body.na, (err) => {
 						if (err) console.log(`Error X - ${err}`);
 					});
 				}
@@ -152,14 +187,14 @@ server.on('message', function (message, rinfo) {
 			break;
 
 		case 'newOrder':
-			if (msgData.token == undefined || msgData.pickup == undefined || msgData.delivery == undefined || msgData.charge == undefined || msgData.dType == undefined) {
+			if (body.token == undefined || body.pickup == undefined || body.delivery == undefined || body.charge == undefined || body.dType == undefined) {
 				sendMessage(JSON.stringify({ type: 'orderFailure', cTime: getTime(), msg: 'Bad Request' }), rinfo);
 				return;
 			}
 
 			let lPhone, orderDoc, rPhone;
 			async.waterfall([
-				(callback) => functions.verifyToken(msgData.token, callback),
+				(callback) => functions.verifyToken(body.token, callback),
 				(userDoc, callback) => {
 					oPhones[userDoc.phone] = rinfo;
 
@@ -171,7 +206,7 @@ server.on('message', function (message, rinfo) {
 					const otp = functions.getOtp();
 
 					rPhone = riderDoc.phone;
-					Order.add({ oi: functions.generateOrderId(), rider: riderData, otp, phone: lPhone, pickup: msgData.pickup, delivery: msgData.delivery, charge: msgData.charge, dType: msgData.dType }, callback);
+					Order.add({ oi: functions.generateOrderId(), rider: riderData, otp, phone: lPhone, pickup: body.pickup, delivery: body.delivery, charge: body.charge, dType: body.dType }, callback);
 				},
 				(_orderDoc, callback) => {
 					orderDoc = _orderDoc;
@@ -188,16 +223,16 @@ server.on('message', function (message, rinfo) {
 			break;
 
 		case 'getOrder':
-			if (msgData.token == undefined || msgData.oId == undefined) {
+			if (body.token == undefined || body.oId == undefined) {
 				console.log(`errd`);				
 				return;
 			}
 
 			async.waterfall([
-				(callback) => functions.verifyToken(msgData.token, callback),
+				(callback) => functions.verifyToken(body.token, callback),
 				(userDoc, callback) => {
 					oPhones[userDoc.phone] = rinfo;
-					Order.get(msgData.oId, callback);
+					Order.get(body.oId, callback);
 				}
 			], (err, orderDoc) => {
 				console.log(`errc - ${err}`);
@@ -208,16 +243,16 @@ server.on('message', function (message, rinfo) {
 			break;
 
 		case 'rGetOrder':
-			if (msgData.token == undefined || msgData.oId == undefined) {
+			if (body.token == undefined || body.oId == undefined) {
 				console.log(`errd`);				
 				return;
 			}
 
 			async.waterfall([
-				(callback) => functions.verifyRiderToken(msgData.token, callback),
+				(callback) => functions.verifyRiderToken(body.token, callback),
 				(userDoc, callback) => {
 					oPhones[userDoc.phone] = rinfo;
-					Order.get(msgData.oId, callback);
+					Order.get(body.oId, callback);
 				}
 			], (err, orderDoc) => {
 				console.log(`errc - ${err}`);
@@ -228,11 +263,11 @@ server.on('message', function (message, rinfo) {
 			break;
 
 		case 'delAddresses':
-			if (msgData.token == undefined || msgData.names == undefined) {
+			if (body.token == undefined || body.names == undefined) {
 				return;
 			}
 
-			functions.verifyToken(msgData.token, (err, userDoc) => {
+			functions.verifyToken(body.token, (err, userDoc) => {
 				if (err) {
 					console.log(`erre - ${err}`);
 					return;
@@ -241,8 +276,8 @@ server.on('message', function (message, rinfo) {
 
 					let newAddresses = userDoc.addresses;
 					for (let i = 0; i < userDoc.addresses.length; i++) {
-						for (let j = 0; j < msgData.names.length; j++) {
-							if (userDoc.addresses[i].name == msgData.names[j]) newAddresses.splice(i, 1);
+						for (let j = 0; j < body.names.length; j++) {
+							if (userDoc.addresses[i].name == body.names[j]) newAddresses.splice(i, 1);
 						}
 					}
 
@@ -257,41 +292,41 @@ server.on('message', function (message, rinfo) {
 			break;
 
 		case 'upOrder':
-			if (msgData.token == undefined || msgData.oId == undefined || msgData.status == undefined || msgData.otp == undefined) {
+			if (body.token == undefined || body.oId == undefined || body.status == undefined || body.otp == undefined) {
 				sendMessage(JSON.stringify({ type: 'oUpFailure', cTime: getTime() }), rinfo);
 				return;
 			}
 
 			let rPhone2, oDoc;
 			async.waterfall([
-				(callback) => functions.verifyRiderToken(msgData.token, callback),
+				(callback) => functions.verifyRiderToken(body.token, callback),
 				(userDoc, callback) => {
 					oPhones[userDoc.phone] = rinfo;
 					
 					rPhone2 = userDoc.phone;
 
-					Order.get(msgData.oId, (err, orderDoc) => {
+					Order.get(body.oId, (err, orderDoc) => {
 						if (err) callback('ErrorX');
 						else if (orderDoc == null) callback('ErrorY');
 						else {
 							oDoc = orderDoc;
 
-							if (msgData.status == 3 && orderDoc.otp != msgData.otp) callback('ErrorZ');
+							if (body.status == 3 && orderDoc.otp != body.otp) callback('ErrorZ');
 							else callback(null);
 						}
 					});
 				},
-				(callback) => Order.updateStatus(msgData.oId, msgData.status, callback),
+				(callback) => Order.updateStatus(body.oId, body.status, callback),
 				(_, callback) => {
 					let msg = 'Your package has been delivered';
-					if (msgData.status == 1) msg = 'Your package has been picked';
-					if (msgData.status == 2) msg = 'Your package is out for delivery';
+					if (body.status == 1) msg = 'Your package has been picked';
+					if (body.status == 2) msg = 'Your package is out for delivery';
 					notify(oDoc.phone, 'Package Status Update', msg);
 
-					if (oPhones[oDoc.phone] != null) sendMessage(JSON.stringify({ type: 'osUpdate', oId: msgData.oId, status: msgData.status, cTime: getTime() }), oPhones[oDoc.phone]);
+					if (oPhones[oDoc.phone] != null) sendMessage(JSON.stringify({ type: 'osUpdate', oId: body.oId, status: body.status, cTime: getTime() }), oPhones[oDoc.phone]);
 
-					if (msgData.status == 3) {
-						Rider.orderCompleted(rPhone2, msgData.oId, callback);
+					if (body.status == 3) {
+						Rider.orderCompleted(rPhone2, body.oId, callback);
 					} else callback(null, null);
 				}
 			], (err, _) => {
@@ -311,8 +346,11 @@ function notify(phone, title, msg) {
 	}
 }
 
+const MAX_PACKET_SIZE = 508;
 function sendMessage(msg, rinfo) {
-	// server.send(msg, rinfo.port, rinfo.address);
+	if (msg.length > MAX_PACKET_SIZE) {
+
+	}
 
 	let i = 0;
 	const il = setInterval(() => {
