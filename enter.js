@@ -405,7 +405,7 @@ function splitMessage(bodyObject, uid) {
 function sendMessage(msg, sendTimes, rinfo) {
 	let i = 0;
 	const il = setInterval(() => {
-		uSocket.send(msg, rinfo.port, rinfo.address);
+		server.send(msg, rinfo.port, rinfo.address);
 		i++;
 
 		if (i == sendTimes) clearInterval(il);
