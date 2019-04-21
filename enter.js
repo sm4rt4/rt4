@@ -64,7 +64,7 @@ server.on('message', function (message, rinfo) {
 			for (let i = 0; i < parts.length; i++) {
 				for (let j = 0; j < parts.length; j++) {
 					if (i == parts[j].index) {
-						fullBodyString += parts[j];
+						fullBodyString.concat(parts[j]);
 						break;
 					}
 				}
