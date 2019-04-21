@@ -114,16 +114,19 @@ server.on('message', function (message, rinfo) {
 
 		case 'rTokenVerify':
 			if (body.token == undefined) {
-				sendMessage(JSON.stringify({ type: 'tvFailure', cTime: getTime() }), rinfo);
+				prepareAndSend({ type: 'tvFailure' }, getTime(), 10, rinfo);
+				// sendMessage(JSON.stringify({ type: 'tvFailure', cTime: getTime() }), rinfo);
 				return;
 			}
 
 			functions.verifyRiderToken(body.token, (err, userDoc) => {
 				if (err) {
-					sendMessage(JSON.stringify({ type: 'tvFailure', cTime: getTime()}), rinfo);
+					prepareAndSend({ type: 'tvFailure' }, getTime(), 10, rinfo);
+					// sendMessage(JSON.stringify({ type: 'tvFailure', cTime: getTime()}), rinfo);
 				} else {
 					oPhones[userDoc.phone] = rinfo;
-					sendMessage(JSON.stringify({ type: 'tvSuccess', cTime: getTime(), doc: userDoc }), rinfo);
+					prepareAndSend({ type: 'tvSuccess', doc: userDoc }, getTime(), 10, rinfo);
+					// sendMessage(JSON.stringify({ type: 'tvSuccess', cTime: getTime(), doc: userDoc }), rinfo);
 				}
 			});
 			break;
@@ -198,7 +201,8 @@ server.on('message', function (message, rinfo) {
 
 		case 'newOrder':
 			if (body.token == undefined || body.pickup == undefined || body.delivery == undefined || body.charge == undefined || body.dType == undefined) {
-				sendMessage(JSON.stringify({ type: 'orderFailure', cTime: getTime(), msg: 'Bad Request' }), rinfo);
+				prepareAndSend({ type: 'orderFailure', msg: 'Bad Request' }, getTime(), 10, loginRequests[phone].rinfo);
+				// sendMessage(JSON.stringify({ type: 'orderFailure', cTime: getTime(), msg: 'Bad Request' }), rinfo);
 				return;
 			}
 
@@ -227,8 +231,11 @@ server.on('message', function (message, rinfo) {
 					Rider.addOrder(rPhone, orderDoc.oi, callback);
 				}
 			], (err) => {
-				if (err) sendMessage(JSON.stringify({ type: 'orderFailure', cTime: getTime(), msg: 'Error placing order' }), rinfo);
-				else sendMessage(JSON.stringify({ type: 'orderSuccess', cTime: getTime(), doc: orderDoc }), rinfo);
+				// if (err) sendMessage(JSON.stringify({ type: 'orderFailure', cTime: getTime(), msg: 'Error placing order' }), rinfo);
+				// else sendMessage(JSON.stringify({ type: 'orderSuccess', cTime: getTime(), doc: orderDoc }), rinfo);
+
+				if (err) prepareAndSend({ type: 'orderFailure', msg: 'Error placing order' }, getTime(), 10, loginRequests[phone].rinfo);
+				else prepareAndSend({ type: 'orderSuccess', doc: orderDoc }, getTime(), 10, loginRequests[phone].rinfo);
 			});
 			break;
 
@@ -248,7 +255,8 @@ server.on('message', function (message, rinfo) {
 				console.log(`errc - ${err}`);
 				console.log(`orderDoc - ${orderDoc}`);
 
-				if (!err && orderDoc != null) sendMessage(JSON.stringify({ type: 'ofSuccess', cTime: getTime(), doc: orderDoc }), rinfo);
+				if (!err && orderDoc != null) prepareAndSend({ type: 'ofSuccess', doc: orderDoc }, getTime, 10, rinfo);
+				// if (!err && orderDoc != null) sendMessage(JSON.stringify({ type: 'ofSuccess', cTime: getTime(), doc: orderDoc }), rinfo);
 			});
 			break;
 
@@ -268,7 +276,8 @@ server.on('message', function (message, rinfo) {
 				console.log(`errc - ${err}`);
 				console.log(`orderDoc - ${orderDoc}`);
 
-				if (!err && orderDoc != null) sendMessage(JSON.stringify({ type: 'ofSuccess', cTime: getTime(), doc: orderDoc }), rinfo);
+				if (!err && orderDoc != null) prepareAndSend({ type: 'ofSuccess', doc: orderDoc }, getTime, 10, rinfo);
+				// if (!err && orderDoc != null) sendMessage(JSON.stringify({ type: 'ofSuccess', cTime: getTime(), doc: orderDoc }), rinfo);
 			});
 			break;
 
@@ -303,7 +312,8 @@ server.on('message', function (message, rinfo) {
 
 		case 'upOrder':
 			if (body.token == undefined || body.oId == undefined || body.status == undefined || body.otp == undefined) {
-				sendMessage(JSON.stringify({ type: 'oUpFailure', cTime: getTime() }), rinfo);
+				prepareAndSend({ type: 'oUpFailure' }, getTime(), 10, rinfo);
+				// sendMessage(JSON.stringify({ type: 'oUpFailure', cTime: getTime() }), rinfo);
 				return;
 			}
 
@@ -333,7 +343,8 @@ server.on('message', function (message, rinfo) {
 					if (body.status == 2) msg = 'Your package is out for delivery';
 					notify(oDoc.phone, 'Package Status Update', msg);
 
-					if (oPhones[oDoc.phone] != null) sendMessage(JSON.stringify({ type: 'osUpdate', oId: body.oId, status: body.status, cTime: getTime() }), oPhones[oDoc.phone]);
+					if (oPhones[oDoc.phone] != null) prepareAndSend({ type: 'osUpdate', oId: body.oId, status: body.status }, getTime(), 10, oPhones[oDoc.phone]);
+					// if (oPhones[oDoc.phone] != null) sendMessage(JSON.stringify({ type: 'osUpdate', oId: body.oId, status: body.status, cTime: getTime() }), oPhones[oDoc.phone]);
 
 					if (body.status == 3) {
 						Rider.orderCompleted(rPhone2, body.oId, callback);
@@ -342,8 +353,11 @@ server.on('message', function (message, rinfo) {
 			], (err, _) => {
 				if (err) console.log(`ErrorL - ${err}`);
 
-				if (err) sendMessage(JSON.stringify({ type: 'oUpFailure', cTime: getTime() }), rinfo);
-				else sendMessage(JSON.stringify({ type: 'oUpSuccess', cTime: getTime() }), rinfo);
+				if (err) prepareAndSend({ type: 'oUpFailure' }, getTime(), 10, rinfo);
+				else prepareAndSend({ type: 'oUpSuccess' }, getTime(), 10, rinfo);
+
+				// if (err) sendMessage(JSON.stringify({ type: 'oUpFailure', cTime: getTime() }), rinfo);
+				// else sendMessage(JSON.stringify({ type: 'oUpSuccess', cTime: getTime() }), rinfo);
 			});
 			break;
 	}
