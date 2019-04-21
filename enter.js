@@ -68,6 +68,7 @@ server.on('message', function (message, rinfo) {
 				}
 			}
 
+			console.log(`fullBodyString - ${fullBodyString}`);
 			body = JSON.parse(fullBodyString);
 		}
 		else return;
