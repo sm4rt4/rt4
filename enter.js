@@ -53,7 +53,7 @@ server.on('message', function (message, rinfo) {
 		};
 
 		const partStr = msgData.b;
-		console.log(`partStr - ${partStr}`);
+		// console.log(`partStr - ${partStr}`);
 
 		largeMessages[group].parts.push({ index: head.i, str: partStr });
 		largeMessages[group].left -= partStr.length;
@@ -70,7 +70,7 @@ server.on('message', function (message, rinfo) {
 				}
 			}
 
-			console.log(`fullBodyString - ${fullBodyString}`);
+			// console.log(`fullBodyString - ${fullBodyString}`);
 			body = JSON.parse(fullBodyString);
 		}
 		else return;
@@ -234,8 +234,8 @@ server.on('message', function (message, rinfo) {
 				// if (err) sendMessage(JSON.stringify({ type: 'orderFailure', cTime: getTime(), msg: 'Error placing order' }), rinfo);
 				// else sendMessage(JSON.stringify({ type: 'orderSuccess', cTime: getTime(), doc: orderDoc }), rinfo);
 
-				if (err) prepareAndSend({ type: 'orderFailure', msg: 'Error placing order' }, getTime(), 10, loginRequests[phone].rinfo);
-				else prepareAndSend({ type: 'orderSuccess', doc: orderDoc }, getTime(), 10, loginRequests[phone].rinfo);
+				if (err) prepareAndSend({ type: 'orderFailure', msg: 'Error placing order' }, getTime(), 10, rinfo);
+				else prepareAndSend({ type: 'orderSuccess', doc: orderDoc }, getTime(), 10, rinfo);
 			});
 			break;
 
