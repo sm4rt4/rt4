@@ -255,7 +255,7 @@ server.on('message', function (message, rinfo) {
 				console.log(`errc - ${err}`);
 				console.log(`orderDoc - ${orderDoc}`);
 
-				if (!err && orderDoc != null) prepareAndSend({ type: 'ofSuccess', doc: orderDoc }, getTime, 10, rinfo);
+				if (!err && orderDoc != null) prepareAndSend({ type: 'ofSuccess', doc: orderDoc }, getTime(), 10, rinfo);
 				// if (!err && orderDoc != null) sendMessage(JSON.stringify({ type: 'ofSuccess', cTime: getTime(), doc: orderDoc }), rinfo);
 			});
 			break;
@@ -276,7 +276,7 @@ server.on('message', function (message, rinfo) {
 				console.log(`errc - ${err}`);
 				console.log(`orderDoc - ${orderDoc}`);
 
-				if (!err && orderDoc != null) prepareAndSend({ type: 'ofSuccess', doc: orderDoc }, getTime, 10, rinfo);
+				if (!err && orderDoc != null) prepareAndSend({ type: 'ofSuccess', doc: orderDoc }, getTime(), 10, rinfo);
 				// if (!err && orderDoc != null) sendMessage(JSON.stringify({ type: 'ofSuccess', cTime: getTime(), doc: orderDoc }), rinfo);
 			});
 			break;
