@@ -53,7 +53,7 @@ server.on('message', function (message, rinfo) {
 		};
 
 		const partStr = msgData.b;
-		console.log(`partStr - ${partStr}`);
+		// console.log(`partStr - ${partStr}`);
 
 		largeMessages[group].parts.push({ index: head.i, str: partStr });
 		largeMessages[group].left -= partStr.length;
@@ -64,6 +64,7 @@ server.on('message', function (message, rinfo) {
 			for (let i = 0; i < parts.length; i++) {
 				for (let j = 0; j < parts.length; j++) {
 					if (i == parts[j].index) {
+						console.log(`partStr - ${parts[j]}`);
 						fullBodyString = fullBodyString.concat(parts[j]);
 						break;
 					}
