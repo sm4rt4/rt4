@@ -76,9 +76,12 @@ server.on('message', function (message, rinfo) {
 		else return;
 	} else body = msgData.b;
 
-	console.log(`rinfo - ${JSON.stringify(rinfo, null, 4)}`);
-	console.log(`head - ${JSON.stringify(head, null, 4)}`);
+	console.log(`uid - ${uid}`);
 	console.log(`body - ${JSON.stringify(body, null, 4)}`);
+
+	// console.log(`rinfo - ${JSON.stringify(rinfo, null, 4)}`);
+	// console.log(`head - ${JSON.stringify(head, null, 4)}`);
+	// console.log(`body - ${JSON.stringify(body, null, 4)}`);
 
 	switch (body.type) {
 		case 'loginRequest':
@@ -253,7 +256,7 @@ server.on('message', function (message, rinfo) {
 				}
 			], (err, orderDoc) => {
 				console.log(`errc - ${err}`);
-				console.log(`orderDoc - ${orderDoc}`);
+				// console.log(`orderDoc - ${orderDoc}`);
 
 				if (!err && orderDoc != null) prepareAndSend({ type: 'ofSuccess', doc: orderDoc }, getTime(), 10, rinfo);
 				// if (!err && orderDoc != null) sendMessage(JSON.stringify({ type: 'ofSuccess', cTime: getTime(), doc: orderDoc }), rinfo);
@@ -274,7 +277,7 @@ server.on('message', function (message, rinfo) {
 				}
 			], (err, orderDoc) => {
 				console.log(`errc - ${err}`);
-				console.log(`orderDoc - ${orderDoc}`);
+				// console.log(`orderDoc - ${orderDoc}`);
 
 				if (!err && orderDoc != null) prepareAndSend({ type: 'ofSuccess', doc: orderDoc }, getTime(), 10, rinfo);
 				// if (!err && orderDoc != null) sendMessage(JSON.stringify({ type: 'ofSuccess', cTime: getTime(), doc: orderDoc }), rinfo);
@@ -409,7 +412,7 @@ function splitMessage(bodyObject, uid) {
 		const start = totalBodyLength - dataLeft;
 
 		partObject.b = bodyString.substr(start, spaceLeft);
-		console.log(JSON.stringify(partObject, null, 2));
+		// console.log(JSON.stringify(partObject, null, 2));
 
 		dataLeft -= spaceLeft;
 		index++;
