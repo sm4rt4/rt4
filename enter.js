@@ -95,16 +95,19 @@ server.on('message', function (message, rinfo) {
 
 		case 'tokenVerify':
 			if (body.token == undefined) {
-				sendMessage(JSON.stringify({ type: 'tvFailure', cTime: getTime() }), rinfo);
+				prepareAndSend({ type: 'tvFailure' }, getTime(), 10, rinfo);
+				// sendMessage(JSON.stringify({ type: 'tvFailure', cTime: getTime() }), rinfo);
 				return;
 			}
 
 			functions.verifyToken(body.token, (err, userDoc) => {
 				if (err) {
-					sendMessage(JSON.stringify({ type: 'tvFailure', cTime: getTime()}), rinfo);
+					prepareAndSend({ type: 'tvFailure' }, getTime(), 10, rinfo);
+					// sendMessage(JSON.stringify({ type: 'tvFailure', cTime: getTime()}), rinfo);
 				} else {
 					oPhones[userDoc.phone] = rinfo;
-					sendMessage(JSON.stringify({ type: 'tvSuccess', cTime: getTime(), doc: userDoc }), rinfo);
+					prepareAndSend({ type: 'tvSuccess', doc: userDoc }, getTime(), 10, rinfo);
+					// sendMessage(JSON.stringify({ type: 'tvSuccess', cTime: getTime(), doc: userDoc }), rinfo);
 				}
 			});
 			break;
@@ -345,22 +348,67 @@ server.on('message', function (message, rinfo) {
 const oPhones = {};
 function notify(phone, title, msg) {
 	if (oPhones[phone] != null) {
-		sendMessage(JSON.stringify({ type: 'n', title, msg, cTime: getTimeWithInc(100) }), oPhones[phone]);
+		prepareAndSend({ type: 'n', title, msg }, getTimeWithInc(100), 5, oPhones[phone]);
+		// sendMessage(JSON.stringify({ type: 'n', title, msg, cTime: getTimeWithInc(100) }), oPhones[phone]);
 	}
 }
 
-const MAX_PACKET_SIZE = 508;
-function sendMessage(msg, rinfo) {
-	if (msg.length > MAX_PACKET_SIZE) {
+// function sendMessage(msg, rinfo) {
+// 	let i = 0;
+// 	const il = setInterval(() => {
+// 		server.send(msg, rinfo.port, rinfo.address);
+// 		i++;
 
+// 		if (i == 10) clearInterval(il);
+// 	}, 500);
+// }
+
+const MAX_PACKET_SIZE = 508;
+
+function prepareAndSend(bodyObject, uid, sendTimes, rinfo) {
+	const msgObject = { h: { u: uid }, b: bodyObject };
+	const msgString = JSON.stringify(msgObject);
+
+	if (msgString.length > MAX_PACKET_SIZE) {
+		const parts = splitMessage(bodyObject, uid);
+		for (let i = 0; i < parts.length; i++) sendMessage(JSON.stringify(parts[i]), sendTimes, rinfo);
+	} else {
+		sendMessage(msgString, sendTimes, rinfo);
+	}
+}
+
+function splitMessage(bodyObject, uid) {
+	const bodyString = JSON.stringify(bodyObject);
+	const totalBodyLength = bodyString.length;
+	
+	let dataLeft = totalBodyLength;
+	let index = 0;
+
+	const parts = [];
+	while (dataLeft > 0) {
+		const partObject = { h: { g: uid, u: `${uid}-${index}`, i: index, t: totalBodyLength }, b: '' };
+		const spaceLeft = MAX_PACKET_SIZE - JSON.stringify(partObject).length;
+		const start = totalBodyLength - dataLeft;
+
+		partObject.b = bodyString.substr(start, spaceLeft);
+		console.log(JSON.stringify(partObject, null, 2));
+
+		dataLeft -= spaceLeft;
+		index++;
+
+		parts.push(partObject);
 	}
 
+	return parts;
+}
+
+function sendMessage(msg, sendTimes, rinfo) {
 	let i = 0;
 	const il = setInterval(() => {
-		server.send(msg, rinfo.port, rinfo.address);
+		uSocket.send(msg, rinfo.port, rinfo.address);
 		i++;
 
-		if (i == 10) clearInterval(il);
+		if (i == sendTimes) clearInterval(il);
 	}, 500);
 }
 
