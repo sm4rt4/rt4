@@ -26,6 +26,7 @@ const server = dgram.createSocket('udp4');
 // let phoneServer;
 
 const loginRequests = {};
+const loginRequestsDone = {};
 const dealt = [];
 const largeMessages = {};
 
