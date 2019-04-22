@@ -147,7 +147,7 @@ server.on('message', function (message, rinfo) {
 					if (mins <= 2) {
 						if (loginRequestsDone[body.phone].success) {
 							const token = functions.generateToken(loginRequestsDone[body.phone].userDoc);
-							prepareAndSend({ type: 'loginSuccess', doc: userDoc, token }, getTime(), 10, rinfo);
+							prepareAndSend({ type: 'loginSuccess', doc: loginRequestsDone[body.phone].userDoc, token }, getTime(), 10, rinfo);
 						} else {
 							prepareAndSend({ type: 'loginFailure', token }, getTime(), 10, rinfo);
 						}
