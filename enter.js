@@ -137,6 +137,23 @@ server.on('message', function (message, rinfo) {
 				});
 				break;
 
+			case 'loginRequest2':
+				if (loginRequests[body.phone] != null && loginRequestsDone[body.phone] != null) {
+					const timeRn = moment();
+					const duration = moment.duration(timeRn.diff(loginRequests[body.phone].rTime));
+					const mins = duration.asMinutes();
+
+					if (mins <= 2) {
+						if (loginRequestsDone[body.phone].success) {
+							const token = functions.generateToken(loginRequestsDone[body.phone].userDoc);
+							prepareAndSend({ type: 'loginSuccess', doc: userDoc, token }, getTime(), 10, rinfo);
+						} else {
+							prepareAndSend({ type: 'loginFailure', token }, getTime(), 10, rinfo);
+						}
+					}
+				}
+				break;
+
 			case 'newCall':
 				if (loginRequests[body.phone] != null) {
 					const timeRn = moment();
@@ -160,12 +177,14 @@ server.on('message', function (message, rinfo) {
 							], (err, userDoc) => {
 								if (err) {
 									prepareAndSend({ type: 'loginFailure' }, getTime(), 10, loginRequests[phone].rinfo);
+									loginRequestsDone[phone] = { success: false };
 									// sendMessage(JSON.stringify({ type: 'loginFailure', cTime: getTime() }), loginRequests[phone].rinfo);
 									return;
 								}
 		
 								const token = functions.generateToken(userDoc);
 								prepareAndSend({ type: 'loginSuccess', doc: userDoc, token }, getTime(), 10, loginRequests[phone].rinfo);
+								loginRequestsDone[phone] = { userDoc, success: true };
 								// sendMessage(JSON.stringify({ type: 'loginSuccess', cTime: getTime(), doc: userDoc, token }), loginRequests[phone].rinfo);
 							});
 						} else if (loginRequests[body.phone].uType == 'r') {
@@ -174,12 +193,14 @@ server.on('message', function (message, rinfo) {
 							], (err, userDoc) => {
 								if (err) {
 									prepareAndSend({ type: 'loginFailure' }, getTime(), 10, loginRequests[phone].rinfo);
+									loginRequestsDone[phone] = { success: false };
 									// sendMessage(JSON.stringify({ type: 'loginFailure', cTime: getTime() }), loginRequests[phone].rinfo);
 									return;
 								}
 		
 								const token = functions.generateToken(userDoc);
 								prepareAndSend({ type: 'loginSuccess', doc: userDoc, token }, getTime(), 10, loginRequests[phone].rinfo);
+								loginRequestsDone[phone] = { userDoc, success: true };								
 								// sendMessage(JSON.stringify({ type: 'loginSuccess', cTime: getTime(), doc: userDoc, token }), loginRequests[phone].rinfo);
 							});
 						}
